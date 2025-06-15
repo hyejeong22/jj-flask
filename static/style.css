@@ -1,0 +1,206 @@
+/* 전체 페이지 설정 */
+body {
+  background-color: #f4f7fc;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 페이지 상단에 정렬 */
+  flex-direction: column; /* 수직 정렬로 변경 */
+  height: 100vh;
+  margin: 0;
+}
+
+/* 로그인 컨테이너 */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* 로그인 박스 스타일 */
+.login-box {
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 40px;
+  width: 350px;
+  text-align: center;
+}
+
+h2.logo {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+h2.logo span {
+  color: #78b1ee;
+}
+
+/* 입력 필드 스타일 */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+  transition: border 0.3s ease;
+}
+
+.input-field:focus {
+  border: 1px solid #a1c5ec;
+  outline: none;
+}
+
+/* 체크박스 스타일 */
+.remember-me {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.remember-me input {
+  margin-right: 5px;
+}
+
+/* 로그인 버튼 스타일 */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #9abee6;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-btn:hover {
+  background-color: #98badf;
+}
+
+/* 오류 메시지 */
+.error {
+  color: #ff3333;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* 탭 스타일 */
+.tabs {
+  display: flex;
+  justify-content: space-around; /* 탭을 양옆으로 배치 */
+  margin-top: 20px;
+  width: 100%;
+}
+
+.tab {
+  padding: 12px 24px;
+  border: 1px solid #5b5b5b;
+  cursor: pointer;
+  background-color: #f4f4f4;
+  margin-right: 8px;
+  border-radius: 8px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.tab.active {
+  background-color: #2e3a47;
+  color: white;
+  font-weight: bold;
+}
+
+/* 탭 내용 */
+.tab-content {
+  display: none;
+  padding: 20px;
+  border-top: none;
+  background-color: #fafafa;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* 서브 탭 스타일 */
+.sub-tab {
+  padding: 10px 20px;
+  margin: 0 5px 15px 5px;
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sub-tab.active {
+  background-color: #4a5b67;
+  color: #f1c40f;
+}
+
+/* 서브 탭 내용 */
+.sub-tab-content {
+  display: none;
+}
+
+.sub-tab-content.active {
+  display: block;
+}
+
+/* 테이블 스타일 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th,
+td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+th {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* QR 코드 로그 */
+.qr-code {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.qr-log {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f0f8ff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* 헤더 스타일 */
+h1 {
+  text-align: center;
+  font-size: 36px;
+  color: #2e3a47;
+  font-family: 'Arial', sans-serif;
+}

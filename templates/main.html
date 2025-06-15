@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>관리자 메인</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <style>
+      /* 전체 페이지 스타일 */
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f7fc;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      /* 제목 스타일 */
+      h1 {
+        text-align: center;
+        font-size: 36px;
+        color: #2e3a47;
+        margin-top: 40px;
+      }
+      /* 탭 스타일 */
+      .tabs {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .tab {
+        padding: 12px 24px;
+        border: 1px solid #5b5b5b;
+        cursor: pointer;
+        background-color: #f4f4f4;
+        margin-right: 8px;
+        border-radius: 8px;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .tab.active {
+        background-color: #2e3a47;
+        color: white;
+        font-weight: bold;
+      }
+      /* 탭 내용 */
+      .tab-content {
+        display: none;
+        padding: 20px;
+        width: 100%;
+        max-width: 900px;
+        border-radius: 8px;
+        background-color: #fafafa;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      /* 표 스타일 */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 12px;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+      th {
+        background-color: #e0e0e0;
+        color: #333;
+      }
+      tr:nth-child(even) {
+        background-color: #fafafa;
+      }
+      /* 서브 탭 스타일 */
+      .sub-tab {
+        padding: 10px 20px;
+        margin: 0 5px 15px 5px;
+        background-color: #f0f0f0;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      .sub-tab.active {
+        background-color: #4a5b67;
+        color: #f1c40f;
+      }
+      .sub-tab-content {
+        display: none;
+      }
+      .sub-tab-content.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>V 아파트</h1>
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('entry')">출입기록</div>
+      <div class="tab" onclick="showTab('manage')">등록 관리</div>
+      <!-- QR코드 발급 탭 삭제 -->
+    </div>
+
+    <!-- 출입기록 -->
+    <div id="entry" class="tab-content active">
+      <h2>출입기록</h2>
+      <div>
+        <button
+          class="sub-tab active"
+          id="ownerBtn"
+          onclick="showSubTab('owner')"
+        >
+          세대주
+        </button>
+        <button class="sub-tab" id="visitorBtn" onclick="showSubTab('visitor')">
+          방문자
+        </button>
+      </div>
+      <div id="owner" class="sub-tab-content active">
+        <h3>세대주 출입기록</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>날짜/시간</th>
+              <th>방문 동/호수</th>
+              <th>방문 목적</th>
+              <th>이름</th>
+              <th>전화번호</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025-04-22 09:12</td>
+              <td>101동 303호</td>
+              <td>정기 방문</td>
+              <td>홍길동</td>
+              <td>010-1234-5678</td>
+            </tr>
+            <tr>
+              <td>2025-04-22 18:45</td>
+              <td>101동 303호</td>
+              <td>정기 방문</td>
+              <td>홍길동</td>
+              <td>010-1234-5678</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="visitor" class="sub-tab-content">
+        <h3>방문자 출입기록</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>날짜/시간</th>
+              <th>방문 동/호수</th>
+              <th>방문 목적</th>
+              <th>이름</th>
+              <th>전화번호</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025-04-22 14:02</td>
+              <td>택배기사</td>
+              <td>택배 배송</td>
+              <td>김택배</td>
+              <td>010-2345-6789</td>
+            </tr>
+            <tr>
+              <td>2025-04-22 14:10</td>
+              <td>107동 602호</td>
+              <td>음식 배달</td>
+              <td>이배달</td>
+              <td>010-3456-7890</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 등록 관리 -->
+    <div id="manage" class="tab-content">
+      <h2>등록 관리</h2>
+      <div class="sub-tabs">
+        <button
+          class="sub-tab active"
+          id="registerBtn"
+          onclick="showSubTab('register')"
+        >
+          등록
+        </button>
+        <button class="sub-tab" id="searchBtn" onclick="showSubTab('search')">
+          검색
+        </button>
+      </div>
+
+      <!-- 등록 탭 -->
+      <div id="register" class="sub-tab-content active">
+        <form class="register-form" onsubmit="handleRegister(event)">
+          <label>얼굴 사진</label>
+          <input type="file" name="photo" accept="image/*" required /><br />
+          <label>이름</label>
+          <input type="text" name="name" required /><br />
+          <label>주소</label>
+          <input type="text" name="address" required /><br />
+          <label>전화번호</label>
+          <input type="tel" name="phone" required /><br />
+          <button type="submit">등록</button>
+        </form>
+
+        <h3>등록된 목록</h3>
+        <ul id="registerList"></ul>
+      </div>
+
+      <!-- 검색 탭 -->
+      <div id="search" class="sub-tab-content">
+        <form class="search-form" onsubmit="handleSearch(event)">
+          <input type="text" name="name" placeholder="이름" />
+          <input type="text" name="unit" placeholder="동/호수" />
+          <button type="submit">검색</button>
+        </form>
+        <div id="search-results"></div>
+      </div>
+    </div>
+
+    <script>
+      const ADMIN_PASSWORD = 'admin123'
+
+      function getUsersFromStorage() {
+        return JSON.parse(localStorage.getItem('registeredUsers')) || []
+      }
+
+      function saveUsersToStorage(users) {
+        localStorage.setItem('registeredUsers', JSON.stringify(users))
+      }
+
+      let registeredUsers = getUsersFromStorage()
+      updateRegisterList()
+
+      function showTab(id) {
+        const tabs = document.querySelectorAll('.tab')
+        const contents = document.querySelectorAll('.tab-content')
+        tabs.forEach((tab) => tab.classList.remove('active'))
+        contents.forEach((content) => content.classList.remove('active'))
+        document
+          .querySelector(`.tab[onclick="showTab('${id}')"]`)
+          ?.classList.add('active')
+        document.getElementById(id)?.classList.add('active')
+      }
+
+      function showSubTab(type) {
+        const subTabs = ['register', 'search']
+        subTabs.forEach((t) => {
+          document.getElementById(t)?.classList.remove('active')
+          document.getElementById(t + 'Btn')?.classList.remove('active')
+        })
+        document.getElementById(type)?.classList.add('active')
+        document.getElementById(type + 'Btn')?.classList.add('active')
+      }
+
+      function handleRegister(event) {
+        event.preventDefault()
+
+        const form = event.target
+        const name = form.name.value.trim()
+        const address = form.address.value.trim()
+        const phone = form.phone.value.trim()
+        const photo = form.photo.files[0]
+
+        if (!photo) return
+
+        const reader = new FileReader()
+        reader.onload = function () {
+          const photoData = reader.result
+          const user = { name, address, phone, photoData }
+          registeredUsers.push(user)
+          saveUsersToStorage(registeredUsers)
+          updateRegisterList()
+          form.reset()
+        }
+        reader.readAsDataURL(photo)
+      }
+
+      function updateRegisterList() {
+        const list = document.getElementById('registerList')
+        list.innerHTML = ''
+
+        registeredUsers.forEach((user, index) => {
+          const li = document.createElement('li')
+          li.innerHTML = `
+        <img src="${user.photoData}" alt="사진" width="50" height="50" style="object-fit: cover; border-radius: 50%;" />
+        <strong>${user.name}</strong> | ${user.address} | ${user.phone}
+        <button onclick="editUser(${index})">수정</button>
+        <button onclick="deleteUser(${index})">삭제</button>
+      `
+          list.appendChild(li)
+        })
+      }
+
+      function deleteUser(index) {
+        const pwd = prompt('관리자 비밀번호를 입력하세요:')
+        if (pwd !== ADMIN_PASSWORD) return alert('비밀번호가 틀렸습니다.')
+        registeredUsers.splice(index, 1)
+        saveUsersToStorage(registeredUsers)
+        updateRegisterList()
+      }
+
+      function editUser(index) {
+        const pwd = prompt('관리자 비밀번호를 입력하세요:')
+        if (pwd !== ADMIN_PASSWORD) return alert('비밀번호가 틀렸습니다.')
+
+        const user = registeredUsers[index]
+        const newName = prompt('새 이름:', user.name)
+        const newAddress = prompt('새 주소:', user.address)
+        const newPhone = prompt('새 전화번호:', user.phone)
+
+        if (newName && newAddress && newPhone) {
+          registeredUsers[index] = {
+            ...user,
+            name: newName,
+            address: newAddress,
+            phone: newPhone,
+          }
+          saveUsersToStorage(registeredUsers)
+          updateRegisterList()
+        }
+      }
+
+      function handleSearch(event) {
+        event.preventDefault()
+
+        const form = event.target
+        const searchName = form.name.value
+          .trim()
+          .toLowerCase()
+          .replace(/\s/g, '')
+        const searchUnit = form.unit.value
+          .trim()
+          .toLowerCase()
+          .replace(/\s/g, '')
+        const resultsDiv = document.getElementById('search-results')
+        resultsDiv.innerHTML = ''
+
+        const filteredUsers = registeredUsers.filter((user) => {
+          const userName = user.name.toLowerCase().replace(/\s/g, '')
+          const userAddress = user.address.toLowerCase().replace(/\s/g, '')
+          const nameMatch = !searchName || userName.includes(searchName)
+          const unitMatch = !searchUnit || userAddress.includes(searchUnit)
+          return nameMatch && unitMatch
+        })
+
+        if (filteredUsers.length === 0) {
+          resultsDiv.innerHTML = '<p>검색 결과가 없습니다.</p>'
+          return
+        }
+
+        const ul = document.createElement('ul')
+        filteredUsers.forEach((user) => {
+          const li = document.createElement('li')
+          li.innerHTML = `
+        <img src="${user.photoData}" alt="사진" width="50" height="50" style="object-fit: cover; border-radius: 50%;" />
+        <strong>${user.name}</strong> | ${user.address} | ${user.phone}
+      `
+          ul.appendChild(li)
+        })
+        resultsDiv.appendChild(ul)
+      }
+    </script>
+  </body>
+</html>
