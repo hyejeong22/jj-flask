@@ -7,6 +7,7 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
       /* 전체 페이지 스타일 */
       body {
@@ -31,7 +32,8 @@
         justify-content: center;
         margin-top: 20px;
       }
-      .tab {
+      .tab,
+      .sub-tab {
         padding: 12px 24px;
         border: 1px solid #5b5b5b;
         cursor: pointer;
@@ -39,8 +41,10 @@
         margin-right: 8px;
         border-radius: 8px;
         transition: background-color 0.3s, color 0.3s;
+        user-select: none;
       }
-      .tab.active {
+      .tab.active,
+      .sub-tab.active {
         background-color: #2e3a47;
         color: white;
         font-weight: bold;
@@ -78,17 +82,10 @@
       }
       /* 서브 탭 스타일 */
       .sub-tab {
-        padding: 10px 20px;
         margin: 0 5px 15px 5px;
         background-color: #f0f0f0;
         border: none;
-        cursor: pointer;
         border-radius: 8px;
-        transition: background-color 0.3s, color 0.3s;
-      }
-      .sub-tab.active {
-        background-color: #4a5b67;
-        color: #f1c40f;
       }
       .sub-tab-content {
         display: none;
@@ -96,14 +93,38 @@
       .sub-tab-content.active {
         display: block;
       }
+      /* QR 코드 섹션 스타일 */
+      #qr-result {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+      #qr-image {
+        margin-top: 20px;
+      }
+      #back-btn {
+        margin-bottom: 15px;
+        padding: 6px 12px;
+        cursor: pointer;
+        background-color: #2e3a47;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
     <h1>V 아파트</h1>
     <div class="tabs">
-      <div class="tab active" onclick="showTab('entry')">출입기록</div>
-      <div class="tab" onclick="showTab('manage')">등록 관리</div>
-      <!-- QR코드 발급 탭 삭제 -->
+      <div class="tab active" id="tab-entry" onclick="showTab('entry')">
+        출입기록
+      </div>
+      <div class="tab" id="tab-manage" onclick="showTab('manage')">
+        등록 관리
+      </div>
+      <button class="sub-tab" id="qrBtn" onclick="showTab('qr')">
+        QR코드 발급
+      </button>
     </div>
 
     <!-- 출입기록 -->
@@ -113,11 +134,15 @@
         <button
           class="sub-tab active"
           id="ownerBtn"
-          onclick="showSubTab('owner')"
+          onclick="showEntrySubTab('owner')"
         >
           세대주
         </button>
-        <button class="sub-tab" id="visitorBtn" onclick="showSubTab('visitor')">
+        <button
+          class="sub-tab"
+          id="visitorBtn"
+          onclick="showEntrySubTab('visitor')"
+        >
           방문자
         </button>
       </div>
@@ -190,11 +215,15 @@
         <button
           class="sub-tab active"
           id="registerBtn"
-          onclick="showSubTab('register')"
+          onclick="showManageSubTab('register')"
         >
           등록
         </button>
-        <button class="sub-tab" id="searchBtn" onclick="showSubTab('search')">
+        <button
+          class="sub-tab"
+          id="searchBtn"
+          onclick="showManageSubTab('search')"
+        >
           검색
         </button>
       </div>
@@ -228,165 +257,367 @@
       </div>
     </div>
 
+    <!-- QR코드 발급 -->
+    <div id="qr" class="tab-content">
+      <button id="back-btn" onclick="showTab('manage')">← 메인 페이지</button>
+      <h1>🔐 관리자 페이지 - QR코드 발급</h1>
+
+      <section>
+        <h2>➕ QR 생성</h2>
+        <form id="qr-form">
+          <input type="text" id="phone" placeholder="전화번호" required />
+          <input
+            type="number"
+            id="duration"
+            placeholder="유효 시간 (분)"
+            required
+          />
+          <input type="text" id="memo" placeholder="메모 (예: 배달기사)" />
+          <button type="submit">QR 생성</button>
+        </form>
+        <p id="qr-result"></p>
+        <div id="qr-image"></div>
+      </section>
+
+      <section>
+        <h2>📋 인증 로그</h2>
+        <table id="log-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>QR 코드</th>
+              <th>상태</th>
+              <th>전화번호</th>
+              <th>메모</th>
+              <th>시간</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div id="pagination">
+          <button id="prev-page">이전</button>
+          <span id="page-info">1페이지</span>
+          <button id="next-page">다음</button>
+        </div>
+      </section>
+    </div>
+
     <script>
-      const ADMIN_PASSWORD = 'admin123'
+      const ADMIN_PASSWORD = '1234' // 관리자 비밀번호 (원하시는 값으로 변경 가능)
 
-      function getUsersFromStorage() {
-        return JSON.parse(localStorage.getItem('registeredUsers')) || []
-      }
-
-      function saveUsersToStorage(users) {
-        localStorage.setItem('registeredUsers', JSON.stringify(users))
-      }
-
-      let registeredUsers = getUsersFromStorage()
-      updateRegisterList()
-
-      function showTab(id) {
-        const tabs = document.querySelectorAll('.tab')
-        const contents = document.querySelectorAll('.tab-content')
-        tabs.forEach((tab) => tab.classList.remove('active'))
-        contents.forEach((content) => content.classList.remove('active'))
-        document
-          .querySelector(`.tab[onclick="showTab('${id}')"]`)
-          ?.classList.add('active')
-        document.getElementById(id)?.classList.add('active')
-      }
-
-      function showSubTab(type) {
-        const subTabs = ['register', 'search']
-        subTabs.forEach((t) => {
-          document.getElementById(t)?.classList.remove('active')
-          document.getElementById(t + 'Btn')?.classList.remove('active')
-        })
-        document.getElementById(type)?.classList.add('active')
-        document.getElementById(type + 'Btn')?.classList.add('active')
-      }
-
-      function handleRegister(event) {
-        event.preventDefault()
-
-        const form = event.target
-        const name = form.name.value.trim()
-        const address = form.address.value.trim()
-        const phone = form.phone.value.trim()
-        const photo = form.photo.files[0]
-
-        if (!photo) return
-
-        const reader = new FileReader()
-        reader.onload = function () {
-          const photoData = reader.result
-          const user = { id: Date.now(), name, address, phone, photoData } // id 추가
-          registeredUsers.push(user)
-          saveUsersToStorage(registeredUsers)
-          updateRegisterList()
-          form.reset()
-        }
-        reader.readAsDataURL(photo)
-      }
-
-      function updateRegisterList() {
-        const list = document.getElementById('registerList')
-        list.innerHTML = ''
-
-        registeredUsers.forEach((user) => {
+      // 등록 목록 불러오기
+      function loadRegisterList() {
+        const list = JSON.parse(localStorage.getItem('registerList') || '[]')
+        const ul = document.getElementById('registerList')
+        ul.innerHTML = ''
+        list.forEach((item, index) => {
           const li = document.createElement('li')
           li.innerHTML = `
-        <img src="${user.photoData}" alt="사진" width="50" height="50" style="object-fit: cover; border-radius: 50%;" />
-        <strong>${user.name}</strong> | ${user.address} | ${user.phone}
-        <button onclick="editUserById(${user.id})">수정</button>
-        <button onclick="deleteUserById(${user.id})">삭제</button>
-      `
-          list.appendChild(li)
-        })
-      }
-
-      function deleteUserById(id) {
-        const pwd = prompt('관리자 비밀번호를 입력하세요:')
-        if (pwd !== ADMIN_PASSWORD) return alert('비밀번호가 틀렸습니다.')
-
-        const index = registeredUsers.findIndex((u) => u.id === id)
-        if (index === -1) return alert('사용자를 찾을 수 없습니다.')
-
-        registeredUsers.splice(index, 1)
-        saveUsersToStorage(registeredUsers)
-        updateRegisterList()
-        // 검색 탭에서 삭제 시 결과 갱신
-        if (document.getElementById('search').classList.contains('active')) {
-          handleSearch({ preventDefault: () => {} })
-        }
-      }
-
-      function editUserById(id) {
-        const pwd = prompt('관리자 비밀번호를 입력하세요:')
-        if (pwd !== ADMIN_PASSWORD) return alert('비밀번호가 틀렸습니다.')
-
-        const index = registeredUsers.findIndex((u) => u.id === id)
-        if (index === -1) return alert('사용자를 찾을 수 없습니다.')
-
-        const user = registeredUsers[index]
-        const newName = prompt('새 이름:', user.name)
-        const newAddress = prompt('새 주소:', user.address)
-        const newPhone = prompt('새 전화번호:', user.phone)
-
-        if (newName && newAddress && newPhone) {
-          registeredUsers[index] = {
-            ...user,
-            name: newName,
-            address: newAddress,
-            phone: newPhone,
-          }
-          saveUsersToStorage(registeredUsers)
-          updateRegisterList()
-          // 검색 탭에서 수정 시 결과 갱신
-          if (document.getElementById('search').classList.contains('active')) {
-            handleSearch({ preventDefault: () => {} })
-          }
-        }
-      }
-
-      function handleSearch(event) {
-        event.preventDefault()
-
-        const form = event.target
-        const searchName = form.name.value
-          .trim()
-          .toLowerCase()
-          .replace(/\s/g, '')
-        const searchUnit = form.unit.value
-          .trim()
-          .toLowerCase()
-          .replace(/\s/g, '')
-        const resultsDiv = document.getElementById('search-results')
-        resultsDiv.innerHTML = ''
-
-        const filteredUsers = registeredUsers.filter((user) => {
-          const userName = user.name.toLowerCase().replace(/\s/g, '')
-          const userAddress = user.address.toLowerCase().replace(/\s/g, '')
-          const nameMatch = !searchName || userName.includes(searchName)
-          const unitMatch = !searchUnit || userAddress.includes(searchUnit)
-          return nameMatch && unitMatch
-        })
-
-        if (filteredUsers.length === 0) {
-          resultsDiv.innerHTML = '<p>검색 결과가 없습니다.</p>'
-          return
-        }
-
-        const ul = document.createElement('ul')
-        filteredUsers.forEach((user) => {
-          const li = document.createElement('li')
-          li.innerHTML = `
-        <img src="${user.photoData}" alt="사진" width="50" height="50" style="object-fit: cover; border-radius: 50%;" />
-        <strong>${user.name}</strong> | ${user.address} | ${user.phone}
-        <button onclick="editUserById(${user.id})">수정</button>
-        <button onclick="deleteUserById(${user.id})">삭제</button>
+        <strong>${item.name}</strong> - ${item.address} - ${item.phone}
+        <button onclick="editEntry(${index})">수정</button>
+        <button onclick="deleteEntry(${index})">삭제</button>
       `
           ul.appendChild(li)
         })
-        resultsDiv.appendChild(ul)
       }
+
+      // 등록 처리
+      function handleRegister(event) {
+        event.preventDefault()
+        const form = event.target
+        const photo = form.photo.value // 실제 사진 저장은 생략 (로컬Storage 미지원)
+        const name = form.name.value.trim()
+        const address = form.address.value.trim()
+        const phone = form.phone.value.trim()
+
+        const entry = { name, address, phone }
+        const list = JSON.parse(localStorage.getItem('registerList') || '[]')
+        list.push(entry)
+        localStorage.setItem('registerList', JSON.stringify(list))
+
+        form.reset()
+        loadRegisterList()
+        alert('등록 완료')
+      }
+
+      // 검색 처리
+      function handleSearch(event) {
+        event.preventDefault()
+        const name = event.target.name.value.trim()
+        const unit = event.target.unit.value.trim()
+        const list = JSON.parse(localStorage.getItem('registerList') || '[]')
+
+        const results = list
+          .map((entry, index) => ({ ...entry, index }))
+          .filter((entry) => {
+            return (
+              !name ||
+              entry.name.includes(name) ||
+              !unit ||
+              entry.address.includes(unit)
+            )
+          })
+
+        const resultDiv = document.getElementById('search-results')
+        resultDiv.innerHTML = ''
+        if (results.length === 0) {
+          resultDiv.innerText = '검색 결과가 없습니다.'
+        } else {
+          const ul = document.createElement('ul')
+          results.forEach((item) => {
+            const li = document.createElement('li')
+            li.innerHTML = `
+          <strong>${item.name}</strong> - ${item.address} - ${item.phone}
+          <button onclick="editEntry(${item.index})">수정</button>
+          <button onclick="deleteEntry(${item.index})">삭제</button>
+        `
+            ul.appendChild(li)
+          })
+          resultDiv.appendChild(ul)
+        }
+      }
+
+      // 항목 수정
+      function editEntry(index) {
+        const pwd = prompt('관리자 비밀번호를 입력하세요:')
+        if (pwd !== ADMIN_PASSWORD) {
+          alert('비밀번호가 일치하지 않습니다.')
+          return
+        }
+
+        const list = JSON.parse(localStorage.getItem('registerList') || '[]')
+        const entry = list[index]
+        const newName = prompt('새 이름을 입력하세요:', entry.name)
+        const newAddress = prompt('새 주소를 입력하세요:', entry.address)
+        const newPhone = prompt('새 전화번호를 입력하세요:', entry.phone)
+
+        if (newName && newAddress && newPhone) {
+          list[index] = {
+            name: newName.trim(),
+            address: newAddress.trim(),
+            phone: newPhone.trim(),
+          }
+          localStorage.setItem('registerList', JSON.stringify(list))
+          loadRegisterList()
+          handleSearch(new Event('submit', { bubbles: true })) // 검색 결과 새로고침
+          alert('수정 완료')
+        } else {
+          alert('수정이 취소되었습니다.')
+        }
+      }
+
+      // 항목 삭제
+      function deleteEntry(index) {
+        const pwd = prompt('관리자 비밀번호를 입력하세요:')
+        if (pwd !== ADMIN_PASSWORD) {
+          alert('비밀번호가 일치하지 않습니다.')
+          return
+        }
+
+        const confirmed = confirm('정말로 삭제하시겠습니까?')
+        if (!confirmed) return
+
+        const list = JSON.parse(localStorage.getItem('registerList') || '[]')
+        list.splice(index, 1)
+        localStorage.setItem('registerList', JSON.stringify(list))
+        loadRegisterList()
+        handleSearch(new Event('submit', { bubbles: true })) // 검색 결과 새로고침
+        alert('삭제 완료')
+      }
+
+      // 페이지 로딩 시 등록 목록 불러오기
+      document.addEventListener('DOMContentLoaded', () => {
+        loadRegisterList()
+      })
+    </script>
+
+    <script>
+      // 메인 탭 활성화 함수
+      function showTab(id) {
+        // 모든 탭과 QR 버튼에서 active 클래스 제거
+        const tabs = document.querySelectorAll('.tab, #qrBtn')
+        const contents = document.querySelectorAll('.tab-content')
+
+        tabs.forEach((tab) => tab.classList.remove('active'))
+        contents.forEach((content) => content.classList.remove('active'))
+
+        // 선택된 탭과 내용에 active 추가
+        if (id === 'entry') {
+          document.getElementById('tab-entry').classList.add('active')
+        } else if (id === 'manage') {
+          document.getElementById('tab-manage').classList.add('active')
+        } else if (id === 'qr') {
+          document.getElementById('qrBtn').classList.add('active')
+        }
+
+        const selectedContent = document.getElementById(id)
+        if (selectedContent) selectedContent.classList.add('active')
+
+        // 서브 탭 초기화
+        if (id === 'entry') {
+          showEntrySubTab('owner')
+        } else if (id === 'manage') {
+          showManageSubTab('register')
+        }
+      }
+
+      // 출입기록 서브탭 활성화
+      function showEntrySubTab(subTabId) {
+        const subTabs = ['owner', 'visitor']
+        subTabs.forEach((id) => {
+          const content = document.getElementById(id)
+          const btn = document.getElementById(id + 'Btn')
+          if (content && btn) {
+            if (id === subTabId) {
+              content.classList.add('active')
+              btn.classList.add('active')
+            } else {
+              content.classList.remove('active')
+              btn.classList.remove('active')
+            }
+          }
+        })
+      }
+
+      // 등록관리 서브탭 활성화
+      function showManageSubTab(subTabId) {
+        const subTabs = ['register', 'search']
+        subTabs.forEach((id) => {
+          const content = document.getElementById(id)
+          const btn = document.getElementById(id + 'Btn')
+          if (content && btn) {
+            if (id === subTabId) {
+              content.classList.add('active')
+              btn.classList.add('active')
+            } else {
+              content.classList.remove('active')
+              btn.classList.remove('active')
+            }
+          }
+        })
+      }
+
+      // 초기 실행 시 출입기록 탭과 세대주 서브탭 활성화
+      document.addEventListener('DOMContentLoaded', () => {
+        showTab('entry')
+      })
+
+    </script>
+  </body>
+</html>
+    <script>
+      // 메인 탭 활성화 함수
+      function showTab(id) {
+        const tabs = document.querySelectorAll('.tab, #qrBtn');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach((tab) => tab.classList.remove('active'));
+        contents.forEach((content) => content.classList.remove('active'));
+
+        document.getElementById(id).classList.add('active');
+        const activeTab = document.getElementById(`tab-${id}`) || document.getElementById(`${id}Btn`);
+        if (activeTab) activeTab.classList.add('active');
+      }
+
+      // 출입기록 서브탭
+      function showEntrySubTab(id) {
+        document.querySelectorAll('#entry .sub-tab').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('#entry .sub-tab-content').forEach(div => div.classList.remove('active'));
+        document.getElementById(`${id}Btn`).classList.add('active');
+        document.getElementById(id).classList.add('active');
+      }
+
+      // 등록관리 서브탭
+      function showManageSubTab(id) {
+        document.querySelectorAll('#manage .sub-tab').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('#manage .sub-tab-content').forEach(div => div.classList.remove('active'));
+        document.getElementById(`${id}Btn`).classList.add('active');
+        document.getElementById(id).classList.add('active');
+      }
+    </script>
+
+    <!-- QR 코드 관련 -->
+    <script>
+      let logData = [];
+      let currentPage = 1;
+      const rowsPerPage = 5;
+
+      document.getElementById('qr-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const phone = document.getElementById('phone').value.trim();
+        const duration = document.getElementById('duration').value;
+        const memo = document.getElementById('memo').value.trim();
+
+        if (!phone || !duration) {
+          alert("필수 항목을 입력하세요.");
+          return;
+        }
+
+        const data = `${phone}_${Date.now()}`;
+        const qrcodeDiv = document.getElementById('qr-image');
+        qrcodeDiv.innerHTML = "";
+        const qr = new QRCode(qrcodeDiv, {
+          text: data,
+          width: 180,
+          height: 180,
+        });
+
+        const resultText = document.getElementById('qr-result');
+        resultText.textContent = `${duration}분 동안 유효한 QR코드 생성됨`;
+
+        // 로그 저장
+        const log = {
+          id: logData.length + 1,
+          code: data,
+          status: "미사용",
+          phone,
+          memo,
+          time: new Date().toLocaleString()
+        };
+        logData.unshift(log);
+        renderLogTable();
+      });
+
+      // 로그 테이블 렌더링
+      function renderLogTable() {
+        const tbody = document.querySelector('#log-table tbody');
+        tbody.innerHTML = "";
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = logData.slice(start, end);
+
+        pageData.forEach(log => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${log.id}</td>
+            <td>${log.code}</td>
+            <td>${log.status}</td>
+            <td>${log.phone}</td>
+            <td>${log.memo}</td>
+            <td>${log.time}</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        document.getElementById('page-info').textContent = `${currentPage}페이지`;
+      }
+
+      document.getElementById('prev-page').addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderLogTable();
+        }
+      });
+
+      document.getElementById('next-page').addEventListener('click', () => {
+        const maxPage = Math.ceil(logData.length / rowsPerPage);
+        if (currentPage < maxPage) {
+          currentPage++;
+          renderLogTable();
+        }
+      });
     </script>
   </body>
 </html>

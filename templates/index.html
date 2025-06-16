@@ -14,3 +14,41 @@
     <!-- 나머지 콘텐츠 -->
   </body>
 </html>
+
+<!--추가-->
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QR 코드 인식 시스템</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/html5-qrcode"></script>
+  </head>
+  <body>
+    <!-- 제목: '시스템' 단어만 비밀 포탈 -->
+    <h1 id="page-title">
+      QR 코드 인식 <span id="secret-link" style="cursor: pointer">시스템</span>
+    </h1>
+
+    <!-- QR 인식용 비디오 -->
+    <div id="reader"></div>
+    <p id="result">🔍 QR 코드 결과가 여기에 표시됩니다</p>
+
+    <!-- 비밀번호 입력 모달 -->
+    <div id="password-modal" class="modal">
+      <div class="modal-content">
+        <h3>🔐 관리자 비밀번호 입력</h3>
+        <input
+          type="password"
+          id="password-input"
+          placeholder="비밀번호 입력"
+        />
+        <div class="modal-buttons">
+          <button id="password-submit">확인</button>
+          <button id="password-cancel">취소</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

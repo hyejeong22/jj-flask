@@ -112,6 +112,10 @@ h2.logo span {
   transition: background-color 0.3s, color 0.3s;
 }
 
+.tab:last-child {
+  margin-right: 0; /* 마지막 탭은 오른쪽 여백 제거 */
+}
+
 .tab.active {
   background-color: #2e3a47;
   color: white;
@@ -126,6 +130,7 @@ h2.logo span {
   background-color: #fafafa;
   border-radius: 8px;
   width: 100%;
+  margin-top: 10px;
 }
 
 .tab-content.active {
@@ -203,4 +208,70 @@ h1 {
   font-size: 36px;
   color: #2e3a47;
   font-family: 'Arial', sans-serif;
+}
+
+/* qr */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+section {
+  margin: 20px auto;
+  max-width: 800px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table,
+th,
+td {
+  border: 1px solid #ccc;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: center;
+}
+
+form input,
+form button {
+  margin: 5px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+#qr-result {
+  margin-top: 10px;
+  font-weight: bold;
+  color: green;
+}
+
+#back-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 10px 16px;
+  font-size: 14px;
+  background-color: #222;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
